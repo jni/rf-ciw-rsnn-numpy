@@ -1,4 +1,5 @@
 import numpy as np
+from skimage import segmentation as seg
 
 eps = np.finfo(float).eps
 
@@ -47,3 +48,34 @@ def train_rfciw(images, labels,
         w_random[i] = wrow / norm
         biases[i] = 0.5 * (images[n1] + images[n2]) @ w_random[i]
     w_random *= input_weight_scaling
+
+    images = np.concatenate((images, np.ones((images.shape[0], 1))), axis=1)
+    w_random = np.concatenate((w_random, biases), axis=1)
+
+    activations = 1 / (1 + np.exp(-w_random @ images.T))
+
+    # generate targets matrix from labels (one-hot encoding)
+    targets = one_hot(labels)
+    w_out = np.linalg.lstsq(activations @ activations.T +
+                            ridge * np.ones((n_hidden, n_hidden)),
+                            activations @ targets)
+    return w_random, w_out
+
+
+def predict_class(images, w_random, w_out):
+    prediction_matrix = w_out @ (1 / (1 + np.exp(-w_random @ images.T)))
+    predicted_labels = np.argmax(prediction_matrix, axis=1)
+    return predicted_labels
+
+
+def test_accuracy(images, labels, w_random, w_out):
+    predicted_labels = predict_class(images, w_random, w_out)
+    return np.mean(labels == predicted_labels)
+
+
+def one_hot(labels):
+    n = len(labels)
+    relab, fw, unique = seg.relabel_sequential(labels)
+    encoded = np.zeros((n, len(unique)))
+    encoded[np.arange(n), relab] = 1
+    return encoded
