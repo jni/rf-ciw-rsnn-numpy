@@ -68,7 +68,7 @@ def read_mnist_data(filename, array=True):
         return memmap
 
 
-def mnist(directory, ravel_images=True):
+def mnist(directory, ravel_images=True, normalise_images=True):
     """Return train and test datasets assuming standard names in a directory.
 
     Parameters
@@ -77,12 +77,20 @@ def mnist(directory, ravel_images=True):
         Path to uncompressed mnist data.
     ravel_images : bool, optional
         Return the images as linear lists of pixels, rather than 2D arrays.
+    normalise_images : bool, optional
+        Convert uint8 data in [0, 255] to float data in [0, 1]. Note that
+        the parameters determined in McDonnell et al 2015 [1]_ work for
+        normalised data.
 
     Returns
     -------
     Xtr, ytr, Xts, yts : uint8 arrays, shape (nsamples, npixels) or (nsamples,)
         The training images, training labels, testing images, and testing
         labels.
+
+    References
+    ----------
+    .. [1] http://arxiv.org/abs/1412.8307
     """
     names = ('train-images-idx3-ubyte', 'train-labels-idx1-ubyte',
              't10k-images-idx3-ubyte', 't10k-labels-idx1-ubyte')
@@ -90,4 +98,7 @@ def mnist(directory, ravel_images=True):
     if ravel_images:
         data[0] = np.reshape(data[0], (data[0].shape[0], -1))
         data[2] = np.reshape(data[2], (data[2].shape[0], -1))
+    if normalise_images:
+        data[0] = data[0] / 255
+        data[2] = data[2] / 255
     return data
