@@ -26,7 +26,7 @@ def train_rfciw(images, labels,
     imsize = images.shape[1]
     sidelen = np.sqrt(imsize)
     # generate random receptive fields
-    receptive_fields = np.zeros(n_hidden, imsize, dtype=bool)
+    receptive_fields = np.zeros((n_hidden, imsize), dtype=bool)
     for i in range(n_hidden):
         mask = np.reshape(receptive_fields[i], (sidelen, sidelen))
         inds = np.zeros((2, 2))
@@ -58,13 +58,14 @@ def train_rfciw(images, labels,
     targets = one_hot(labels)
     w_out = np.linalg.lstsq(activations @ activations.T +
                             ridge * np.ones((n_hidden, n_hidden)),
-                            activations @ targets)
+                            activations @ targets)[0]
     return w_random, w_out
 
 
 def predict_class(images, w_random, w_out):
-    prediction_matrix = w_out @ (1 / (1 + np.exp(-w_random @ images.T)))
-    predicted_labels = np.argmax(prediction_matrix, axis=1)
+    images = np.concatenate((images, np.ones((images.shape[0], 1))), axis=1)
+    prediction_matrix = w_out.T @ (1 / (1 + np.exp(-w_random @ images.T)))
+    predicted_labels = np.argmax(prediction_matrix, axis=0)
     return predicted_labels
 
 
@@ -79,3 +80,11 @@ def one_hot(labels):
     encoded = np.zeros((n, len(unique)))
     encoded[np.arange(n), relab] = 1
     return encoded
+
+
+if __name__ == '__main__':
+    import mnistio
+    Xtr, ytr, Xts, yts = mnistio.mnist('data')
+    w_random, w_out = train_rfciw(Xtr, ytr)
+    yts_pred = predict_class(Xts, w_random, w_out)
+    print('accuracy: %.3f' % np.mean((yts_pred == yts).astype(float)))
