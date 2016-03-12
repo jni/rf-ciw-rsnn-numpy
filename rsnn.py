@@ -10,18 +10,33 @@ def train_rfciw(images, labels,
 
     Parameters
     ----------
-    images
-    labels
-
+    images : array, shape (n_images, image_size)
+        The input image data, with raveled (linearised) images.
+    labels : array, shape (n_images,)
+        The image labels.
+    n_hidden : int, optional
+        The number of hidden neurons. In general, a higher number gives
+        better prediction accuracy.
+    input_weight_scaling : float, optional
+        Rescale the normalised input weights by this factor.
+    ridge : float, optional
+        The regularising ridge regression factor.
+    min_mask_size : int, optional
+        The minimum area covered by a random receptive field.
     rf_border : int, optional
         Don't set up receptive fields less than this many pixels away
         from the image border.
 
     Returns
     -------
-
+    w_random : array, shape (n_hidden, image_size + 1)
+        The random receptive field weights. Bias is implemented by an
+        additional column in this matrix, corresponding to an appended
+        column in the image data being predicted.
+    w_out : array, shape (n_hidden, n_classes)
+        The trained output weights corresponding to the input receptive
+        fields.
     """
-
     nimages = images.shape[0]
     imsize = images.shape[1]
     sidelen = np.sqrt(imsize)
