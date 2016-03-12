@@ -36,6 +36,7 @@ def _generate_receptive_fields(n_hidden, image_side_length,
                                              size=(2, 2)), axis=0)
         rows, cols = inds.T
         mask[rows[0]:rows[1], cols[0]:cols[1]] = True
+    return receptive_fields
 
 
 def _generate_random_weights(images, labels, receptive_fields,
