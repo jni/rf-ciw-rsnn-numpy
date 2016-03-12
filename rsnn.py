@@ -150,9 +150,9 @@ def train_rfciw(images, labels,
     targets = one_hot(labels)
 
     # solve for the output weights
-    w_out = np.linalg.lstsq(activations @ activations.T +
+    w_out = np.linalg.solve(activations @ activations.T +
                             ridge * np.ones((n_hidden, n_hidden)),
-                            activations @ targets)[0]
+                            activations @ targets)
     return w_random, w_out
 
 
